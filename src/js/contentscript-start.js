@@ -43,6 +43,9 @@ if ( typeof vAPI !== 'object' ) {
 if ( vAPI.contentscriptStartInjected ) {
     return;
 }
+
+console.warn('RUNNING contentscriptStart: ',document.location.href);
+
 vAPI.contentscriptStartInjected = true;
 vAPI.styles = vAPI.styles || [];
 
@@ -85,13 +88,13 @@ var cosmeticFilters = function(details) {
         style.setAttribute('type', 'text/css');
         // The linefeed before the style block is very important: do not remove!
         style.appendChild(document.createTextNode(styleText + '\n{display:none !important;}'));
-        //console.debug('µBlock> "%s" cosmetic filters: injecting %d CSS rules:', details.domain, details.hide.length, hideStyleText);
+        console.debug('µBlock> cosmetic filters: injecting CSS rules:',styleText);
         var parent = document.head || document.documentElement;
         if ( parent ) {
             parent.appendChild(style);
             vAPI.styles.push(style);
         }
-        hideElements(styleText);
+        //hideElements(styleText);
     }
     vAPI.donthideCosmeticFilters = donthideCosmeticFilters;
     vAPI.hideCosmeticFilters = hideCosmeticFilters;
@@ -137,7 +140,8 @@ var injectScripts = function(scripts) {
 
 /******************************************************************************/
 
-var filteringHandler = function(details) {
+vAPI.filteringHandler = function(details) {
+
     var styleTagCount = vAPI.styles.length;
 
     if ( details ) {
@@ -185,6 +189,7 @@ var hideElements = function(selectors) {
     // Using CSSStyleDeclaration.setProperty is more reliable
     if ( document.body.shadowRoot === undefined ) {
         while ( i-- ) {
+            console.log("HIT-4");
             elems[i].style.setProperty('display', 'none', 'important');
         }
         return;
@@ -201,6 +206,7 @@ var hideElements = function(selectors) {
         // "Multiple shadow roots is being deprecated."
         if ( shadow !== null ) {
             if ( shadow.className !== sessionId ) {
+                console.log("HIT-5");
                 elem.style.setProperty('display', 'none', 'important');
             }
             continue;
@@ -215,7 +221,10 @@ var hideElements = function(selectors) {
             shadow = elem.createShadowRoot();
             shadow.className = sessionId;
             elem.style.removeProperty('display');
+            console.log("HIT-6");
         } catch (ex) {
+            console.log("HIT-7");
+            adDetector.findAds(elem);
             elem.style.setProperty('display', 'none', 'important');
         }
     }
@@ -231,7 +240,7 @@ vAPI.messaging.send(
         pageURL: url,
         locationURL: url
     },
-    filteringHandler
+    vAPI.filteringHandler
 );
 
 /******************************************************************************/

@@ -1,4 +1,5 @@
-var dbugDetect = 0; // tmp
+var dbugDetect = 0,
+  iframeDbug = 1; // tmp
 
 // Injected into content pages before contentscript-end.js
 // jQuery polyfill: $is, $find, $attr, $text
@@ -13,22 +14,24 @@ var dbugDetect = 0; // tmp
   vAPI.messaging.send('adnauseam', {
     what: 'getPreferences'
   }, function (req) {
+      console.log('PREFS: ',req);
     prefs = req;
-  }); // only in root doc? or poll? or put prefs in vAPI
+  }); // only in root doc? or poll? or put prefs in vAPI (see #147)
 
   adDetector.findAds = function (elem) {
 
     switch (elem.tagName) {
 
     case 'IFRAME':
-      elem.addEventListener('load', handleIFrame, false);
+      if (prefs.parseIFrames)
+        elem.addEventListener('load', handleIFrame, false);
       break;
 
     case 'IMG':
-      if (findImageAds([elem])) break;
-      // fall-through
+      findImageAds([elem]);
+      break;
 
-    default:
+    default: // other tags
 
       // check the element for child imgs
       var imgs = elem.querySelectorAll('img');
@@ -38,6 +41,21 @@ var dbugDetect = 0; // tmp
       // else try text
       prefs.parseTextAds && findTextAds(elem);
     }
+  }
+
+  var runSelectors = function (doc) {
+
+    var url = window.location.href;
+    vAPI.messaging.send(
+        'contentscript',
+        {
+            what: 'retrieveDomainCosmeticSelectors',
+            pageURL: url,
+            locationURL: url
+        },
+        vAPI.filteringHandler
+    );
+
   }
 
   var findTextAds = function (elem) {
@@ -60,9 +78,8 @@ var dbugDetect = 0; // tmp
     }
   }
 
-  var handleIFrame = function () { // this
+  var handleIFrame = function () { // this=iframe, called once loaded
 
-    //console.log('handleIFrame', this);
     var html, doc;
     try {
       doc = this.contentDocument;
@@ -80,38 +97,120 @@ var dbugDetect = 0; // tmp
       if (dbugDetect) console.warn(e);
     }
 
-    if (doc) {
+    if (doc) { // local iframe
 
-      var body = $find(doc, 'body');
-      var imgs = body.length && $find(body, 'img');
-      if (dbugDetect);
-      console.warn("IFRAME.IMGS:", imgs.length);
-      findImageAds(imgs);
+      //   // TODO: need to use selectors
+      //   var body = $find(doc, 'body');
+      //   var imgs = body && body.length && $find(body, 'img');
+      //   if (imgs && imgs.length) {
+      //
+      //     if (dbugDetect || iframeDbug)
+      //       console.log('Found image-in-iFrame via method #1');
+      //
+      //     findImageAds(imgs);
+      //   }
+      //
+      runSelectors(doc);
 
-    } else {
+    } else { // cross-domain iframe
 
-      if (dbugDetect) console.log("NO-DOC for IFRAME[" + this.name + "]=" + this.src);
+      //if (dbugDetect) console.log("NO-DOC for Cross-Domain iframe[" + this.name + "]=" + this.src);
+      var url = this.src;
+
+      if (url && url !== 'about:blank') {
+
+        if (iframeDbug) console.log('CALL.iFrame:', url);
+
+        var xhr = new XMLHttpRequest();
+
+        try {
+          xhr.open('get', url, true);
+          xhr.timeout = 5000;
+          xhr.onload = iFrameXhrResponse;
+          xhr.onerror = iFrameXhrError;
+          xhr.ontimeout = iFrameXhrError;
+          xhr.send();
+
+        } catch (e) {
+
+          onVisitError.call(xhr, e);
+        }
+
+      } else {
+
+        if (iframeDbug) console.warn('iFrame: BAD SRC:', url);
+      }
     }
 
     this.removeEventListener('load', handleIFrame, false);
   }
 
-  var findImageAds = function (imgs) {
+  var parseHtml = function (html) {
+    return (new DOMParser).parseFromString(html, 'text/html');
+  }
+
+  var iFrameXhrError = function (e) {
+    iframeDbug && console.warn('RESPONSE.iFrameXhrError()', e, this);
+  };
+
+  var iFrameXhrResponse = function () {
+
+    iframeDbug && console.log('RESPONSE.iFrameXhrResponse()', this);
+
+    var status = this.status || 200,
+      html = this.responseText;
+    if (status < 200 || status >= 300 || !html.length)
+      return onVisitError.call(this, {
+        status: status,
+        responseText: html
+      });
+
+    var DOM = parseHtml(html);
+
+    // TODO: need to check selectors here ***
+
+    //findImageAds(DOM.getElementsByTagName('img'), true);
+
+    runSelectors(DOM);
+
+    // handle nested iFrames
+    Array.prototype.slice.call(DOM.getElementsByTagName('iframe')).forEach(function (ele) {
+      if (iframeDbug) console.log('AddEventListener on nested iFrame *', ele.src);
+      ele.addEventListener('load', handleIFrame, false);
+    });
+
+    this.onload = this.onerror = this.ontimeout = null;
+  };
+
+  var findImageAds = function (imgs, viaIF) {
+
+    if (viaIF) console.log('iframe#2.findImageAds', imgs.length);
+
+    if (!(imgs && imgs.length)) return false;
 
     var target, targetUrl, ad, hits = 0;
 
     for (var i = 0; i < imgs.length; i++) {
 
+      if (viaIF) console.log('  ' + i + ") checking");
+
       var imgSrc = imgs[i].src || imgs[i].getAttribute("src");
 
       if (!imgSrc) {
 
-        if (dbugDetect) console.log("No ImgSrc(#" + i + ")!", imgs[i]);
+        if (dbugDetect || iframeDbug)
+          console.log((viaIF ? "iFrame#2: " : "") + "No ImgSrc(#" + i + ")!", imgs[i]);
         imgs[i].addEventListener('load', processDelayedImage, false);
         continue;
       }
 
-      if (processImage(imgs[i], imgSrc)) hits++;
+      if (processImage(imgs[i], imgSrc, viaIF)) {
+        if (viaIF && iframeDbug)
+          console.log("iFrame#2 Xhr Hit!");
+        hits++;
+      } else {
+        console.log("iFrame#2 Xhr miss: ", imgs[i].src, imgs[i]);
+      }
     }
 
     return hits > 0;
@@ -127,7 +226,26 @@ var dbugDetect = 0; // tmp
     return num;
   }
 
-  var clickableParent = function (node) {
+  function clickableParent(ele) {
+
+    while (ele.parentNode) {
+
+      ele = ele.parentNode;
+      if (ele.tagName === 'A')
+        return ele;
+      else if (ele.tagName === 'OBJECT') {
+        console.log('clickableParent.OBJECT', ele);
+        return ele;
+      } else if (ele.hasAttribute && ele.hasAttribute('onclick')) {
+        console.log('clickableParent.ON_CLICK', ele.tagName, ele);
+        return ele;
+      }
+    }
+
+    return null;
+  }
+
+  var clickableParent1 = function (node) {
 
     var checkParent = function (adNode) {
 
@@ -225,12 +343,15 @@ var dbugDetect = 0; // tmp
   var processDelayedImage = function () { // this
 
     console.log('processDelayedImage Size:', this.naturalWidth, this.naturalHeight, this);
+
     var src = this.src || this.getAttribute('src');
     if (src) processImage(this, src);
     this.removeEventListener('load', processDelayedImage, false);
   }
 
-  var processImage = function (img, src) {
+  var processImage = function (img, src, viaIF) {
+
+    viaIF && console.log('processImage: ', img);
 
     var target, targetUrl, ad, hits = 0;
 
@@ -253,15 +374,17 @@ var dbugDetect = 0; // tmp
             console.log('IMG-AD', ad);
             notifyAddon(ad);
             hits++;
-          }
+
+          } else if (dbugDetect || iframeDbug) console.warn("Bail: Cannot create Ad!", src, targetUrl, img);
 
           // Need to check for div.onclick etc?
-        } else if (dbugDetect) console.warn("Bail: Ad / no targetURL! imgSrc: " + imgSrc);
+        } else if (dbugDetect || iframeDbug) console.warn("Bail: Ad / no targetURL! imgSrc: ", src);
 
-      } else if (dbugDetect) console.log("Bail: Non-anchor found: " + target.tagName);
+      } else if (dbugDetect || iframeDbug) console.log("Bail: Non-anchor found: ", "TODO", target.tagName, target.hasAttribute('onclick'), target);
 
-    } else if (dbugDetect) console.log("Bail: No ClickableParent: " + imgSrc);
+    } else if (dbugDetect || iframeDbug) console.log("Bail: No ClickableParent: ", src, img, img.parent);
 
+    return hits > 0;
   }
 
   var yahooText = function (e) {
@@ -467,6 +590,7 @@ var dbugDetect = 0; // tmp
     }
   }
 
+  // TODO: see #147
   vAPI.messaging.addChannelListener('adnauseam', messageListener);
 
 })(this);

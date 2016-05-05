@@ -421,7 +421,7 @@ var uBlockCollapser = (function() {
 
     var retrieveGenericSelectors = function() {
         if ( lowGenericSelectors.length !== 0 || highGenerics === null ) {
-            //console.log('µBlock> ABP cosmetic filters: retrieving CSS rules using %d selectors', lowGenericSelectors.length);
+            console.log('µBlock> ABP cosmetic filters: retrieving CSS rules using %d selectors', lowGenericSelectors.length);
             messaging.send(
                 'contentscript',
                 {
@@ -545,7 +545,7 @@ var uBlockCollapser = (function() {
                 selectors: selectors
             }
         );
-        //console.debug('µBlock> generic cosmetic filters: injecting %d CSS rules:', selectors.length, text);
+        console.debug('µBlock> generic cosmetic filters: injecting %d CSS rules:', selectors.length, styleText);
     };
 
     // Extract and return the staged nodes which (may) match the selectors.
