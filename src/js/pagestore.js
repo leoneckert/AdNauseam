@@ -511,6 +511,7 @@ PageStore.prototype.temporarilyAllowLargeMediaElements = function() {
 /******************************************************************************/
 
 PageStore.prototype.filterRequest = function(context) {
+console.debug('PageStore.filterRequest: ',context.requestURL)
     var requestType = context.requestType;
 
     if ( this.getNetFilteringSwitch() === false ) {
@@ -522,7 +523,7 @@ PageStore.prototype.filterRequest = function(context) {
 
     var entry = this.netFilteringCache.lookup(context);
     if ( entry !== undefined ) {
-        //console.debug('cache HIT: PageStore.filterRequest("%s")', context.requestURL);
+console.debug('cache HIT: PageStore.filterRequest("%s")', context.requestURL);
         return entry.result;
     }
 
@@ -538,6 +539,9 @@ PageStore.prototype.filterRequest = function(context) {
     if ( result === '' ) {
         µb.sessionURLFiltering.evaluateZ(context.rootHostname, context.requestURL, requestType);
         result = µb.sessionURLFiltering.toFilterString();
+
+result &&console.debug('HIT sessionURLFiltering("%s")', context.requestURL);
+
     }
 
     // Given that:
@@ -548,6 +552,8 @@ PageStore.prototype.filterRequest = function(context) {
     if ( result === '' && µb.userSettings.advancedUserEnabled ) {
         µb.sessionFirewall.evaluateCellZY( context.rootHostname, context.requestHostname, requestType);
         if ( µb.sessionFirewall.mustBlockOrAllow() ) {
+console.debug('HIT sessionFirewall("%s")', context.requestURL);
+
             result = µb.sessionFirewall.toFilterString();
         }
     }
@@ -555,17 +561,27 @@ PageStore.prototype.filterRequest = function(context) {
     // Static filtering never override dynamic filtering
     if ( result === '' || result.charAt(1) === 'n' ) {
         if ( µb.staticNetFilteringEngine.matchString(context) !== undefined ) {
+
             result = µb.staticNetFilteringEngine.toResultString(µb.logger.isEnabled());
+result && console.debug('HIT staticNetFilteringEngine:', context, µb.staticNetFilteringEngine.toResultString(1));
+var _compiled = µb.staticNetFilteringEngine.toResultString(1).slice(3);
+result && console.debug('COMPILED:',_compiled);
+var _raw = µb.staticNetFilteringEngine.filterStringFromCompiled(_compiled)
+result && console.debug('RAW:',_raw);
+
+result && µb.staticFilteringReverseLookup.fromNetFilter(_compiled, _raw, function(e){
+    console.debug('fromNetFilter:',e);
+});
         }
     }
 
-    //console.debug('cache MISS: PageStore.filterRequest("%s")', context.requestURL);
+//console.debug('cache MISS: PageStore.filterRequest("%s")', context.requestURL);
     if ( collapsibleRequestTypes.indexOf(requestType) !== -1 ) {
         this.netFilteringCache.add(context, result);
     }
 
-    // console.debug('[%s, %s] = "%s"', context.requestHostname, requestType, result);
-
+console.debug('RESULT: [%s, %s] = "%s"', context.requestHostname, requestType, result);
+console.debug('');
     return result;
 };
 

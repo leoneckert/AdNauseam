@@ -129,6 +129,10 @@ var initWorker = function(callback) {
 /******************************************************************************/
 
 var fromNetFilter = function(compiledFilter, rawFilter, callback) {
+
+    console.log('staticFilteringReverseLookup.fromNetFilter',
+        'compiledFilter:',compiledFilter,'rawFilter:',rawFilter);
+
     if ( typeof callback !== 'function' ) {
         return;
     }

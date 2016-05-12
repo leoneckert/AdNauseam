@@ -230,7 +230,7 @@ var toHex = function(n) {
 /******************************************************************************/
 
 // Hostname test helpers: the optimal test function is picked
-// according to the content of the `domain` filter option, 
+// according to the content of the `domain` filter option,
 
 var hostnameTestPicker = function(owner) {
     var domainOpt = owner.domainOpt;
@@ -2262,6 +2262,7 @@ FilterContainer.prototype.matchTokens = function(bucket, url) {
     if ( f !== undefined && f.match() ) {
         this.tokenRegister = '.';
         this.fRegister = f;
+console.log("HIT.matchTokens1: ",url,this.tokenRegister,this.fRegister);
         return true;
     }
 
@@ -2278,6 +2279,7 @@ FilterContainer.prototype.matchTokens = function(bucket, url) {
         if ( f !== undefined && f.match(url, tokenEntry.beg) ) {
             this.tokenRegister = token;
             this.fRegister = f;
+console.log("HIT.matchTokens2: ",url,f);
             return true;
         }
     }
@@ -2287,6 +2289,8 @@ FilterContainer.prototype.matchTokens = function(bucket, url) {
     if ( f !== undefined && f.match(url) ) {
         this.tokenRegister = '*';
         this.fRegister = f;
+console.log("HIT.matchTokens3(regex): ",url,this.tokenRegister,this.fRegister);
+
         return true;
     }
 
@@ -2343,6 +2347,7 @@ FilterContainer.prototype.matchStringExactType = function(context, requestURL, r
     if ( (bucket = categories[toHex(key)]) ) {
         if ( this.matchTokens(bucket, url) ) {
             this.keyRegister = key;
+console.log("HIT.matchStringExactType ",url,this.keyRegister,bucket);
             return true;
         }
     }
@@ -2350,6 +2355,7 @@ FilterContainer.prototype.matchStringExactType = function(context, requestURL, r
     if ( (bucket = categories[toHex(key)]) ) {
         if ( this.matchTokens(bucket, url) ) {
             this.keyRegister = key;
+console.log("HIT.matchStringExactType2 ",url,this.keyRegister,bucket);
             return true;
         }
     }
@@ -2390,6 +2396,7 @@ FilterContainer.prototype.matchStringExactType = function(context, requestURL, r
             return false;
         }
     }
+    console.log("HIT.matchStringExactType3 ",url,this.keyRegister,bucket);
 
     return true;
 };

@@ -94,7 +94,8 @@ var onBeforeRequest = function(details) {
 
     // Possible outcomes: blocked, allowed-passthru, allowed-mirror
 
-    var newResult = µb.adnSettings.noBlockingNonTrackers ? 'NBNT' : result;
+// tmp
+    var newResult = result;//µb.adnSettings.noBlockingNonTrackers ? 'NBNT' : result;
 
     pageStore.logRequest(requestContext, newResult);
 
@@ -124,8 +125,9 @@ var onBeforeRequest = function(details) {
         return;
     }
 
-    console.error('BLOCKED !!!!!!!! ', result, requestContext);
-
+    console.error('BLOCKED !!!!!!!! ', // tmp
+                tabId,
+                newResult,pageStore);
     // Blocked
 
     // https://github.com/chrisaljoudi/uBlock/issues/905#issuecomment-76543649
