@@ -2262,7 +2262,7 @@ FilterContainer.prototype.matchTokens = function(bucket, url) {
     if ( f !== undefined && f.match() ) {
         this.tokenRegister = '.';
         this.fRegister = f;
-console.log("HIT.matchTokens1: ",url,this.tokenRegister,this.fRegister);
+//console.log("HIT.matchTokens1: ",url,this.tokenRegister,this.fRegister);
         return true;
     }
 
@@ -2279,7 +2279,7 @@ console.log("HIT.matchTokens1: ",url,this.tokenRegister,this.fRegister);
         if ( f !== undefined && f.match(url, tokenEntry.beg) ) {
             this.tokenRegister = token;
             this.fRegister = f;
-console.log("HIT.matchTokens2: ",url,f);
+//console.log("HIT.matchTokens2: ",url,f);
             return true;
         }
     }
@@ -2289,7 +2289,7 @@ console.log("HIT.matchTokens2: ",url,f);
     if ( f !== undefined && f.match(url) ) {
         this.tokenRegister = '*';
         this.fRegister = f;
-console.log("HIT.matchTokens3(regex): ",url,this.tokenRegister,this.fRegister);
+//console.log("HIT.matchTokens3(regex): ",url,this.tokenRegister,this.fRegister);
 
         return true;
     }

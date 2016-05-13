@@ -511,7 +511,7 @@ PageStore.prototype.temporarilyAllowLargeMediaElements = function() {
 /******************************************************************************/
 
 PageStore.prototype.filterRequest = function(context) {
-console.debug('PageStore.filterRequest: ',context.requestURL)
+//console.debug('PageStore.filterRequest: ',context.requestURL)
     var requestType = context.requestType;
 
     if ( this.getNetFilteringSwitch() === false ) {
@@ -563,25 +563,38 @@ console.debug('HIT sessionFirewall("%s")', context.requestURL);
         if ( µb.staticNetFilteringEngine.matchString(context) !== undefined ) {
 
             result = µb.staticNetFilteringEngine.toResultString(µb.logger.isEnabled());
-result && console.debug('HIT staticNetFilteringEngine:', context, µb.staticNetFilteringEngine.toResultString(1));
-var _compiled = µb.staticNetFilteringEngine.toResultString(1).slice(3);
-result && console.debug('COMPILED:',_compiled);
-var _raw = µb.staticNetFilteringEngine.filterStringFromCompiled(_compiled)
-result && console.debug('RAW:',_raw);
 
-result && µb.staticFilteringReverseLookup.fromNetFilter(_compiled, _raw, function(e){
-    console.debug('fromNetFilter:',e);
-});
+            if (result) {
+                //console.debug('HIT staticNetFilteringEngine:', context, µb.staticNetFilteringEngine.toResultString(1));
+                //var list = µb.staticFilteringReverseLookup.fromNetFilterSync(compiled, raw);
+                if (!µBlock.adnauseam.strictBlocking()) {
+
+                    var compiled = µb.staticNetFilteringEngine.toResultString(1).slice(3);
+                    var raw = µb.staticNetFilteringEngine.filterStringFromCompiled(compiled);
+                    var title, hits = µBlock.adnauseam.fromNetFilterSync(compiled, raw);
+
+                    if (hits && hits.length) {
+
+                        title = hits[0].title;
+                        if (title !== 'EasyPrivacy' || raw === '||googleadservices.com^$third-party') {
+                            result = '';
+                            console.log("Reject-block: "+title, raw);//, context);
+                        }
+                        else console.warn("Allow-block: "+title, raw);
+                    }
+                    else console.error("NO hits ****");
+                }
+                else console.warn("*** IGNORING[not-ready]");
+            }
         }
     }
-
 //console.debug('cache MISS: PageStore.filterRequest("%s")', context.requestURL);
     if ( collapsibleRequestTypes.indexOf(requestType) !== -1 ) {
         this.netFilteringCache.add(context, result);
     }
 
-console.debug('RESULT: [%s, %s] = "%s"', context.requestHostname, requestType, result);
-console.debug('');
+    //console.debug('RESULT: [%s, %s] = "%s"', context.requestHostname, requestType, result);
+    //console.debug('');
     return result;
 };
 

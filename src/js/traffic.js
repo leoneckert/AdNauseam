@@ -94,7 +94,6 @@ var onBeforeRequest = function(details) {
 
     // Possible outcomes: blocked, allowed-passthru, allowed-mirror
 
-// tmp
     var newResult = result;//µb.adnSettings.noBlockingNonTrackers ? 'NBNT' : result;
 
     pageStore.logRequest(requestContext, newResult);
@@ -125,9 +124,7 @@ var onBeforeRequest = function(details) {
         return;
     }
 
-    console.error('BLOCKED !!!!!!!! ', // tmp
-                tabId,
-                newResult,pageStore);
+    console.warn('BLOCK',requestURL,newResult);
     // Blocked
 
     // https://github.com/chrisaljoudi/uBlock/issues/905#issuecomment-76543649
@@ -229,7 +226,7 @@ var onBeforeRootFrameRequest = function(details) {
         }
     }
 
-    var newResult = µBlock.adnSettings.noBlockingNonTrackers ? 'NBNT' : result;
+    var newResult = result;//µBlock.adnSettings.noBlockingNonTrackers ? 'NBNT' : result;
 
     // Log
     var pageStore = µb.bindTabToPageStats(tabId, 'beforeRequest');

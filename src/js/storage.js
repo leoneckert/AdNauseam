@@ -435,6 +435,7 @@
     };
 
     var onFilterListsReady = function(lists) {
+        //console.log('onFilterListsReady');
         µb.remoteBlacklists = lists;
 
         µb.redirectEngine.reset();
@@ -469,7 +470,9 @@
     };
 
     this.getAvailableLists(onFilterListsReady);
-    this.loadRedirectResources();
+    this.loadRedirectResources(function() {
+        //console.log("loadRedirectResources DONE");
+    });
 };
 
 /******************************************************************************/

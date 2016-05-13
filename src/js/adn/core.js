@@ -12,11 +12,14 @@
 
   var xhr, idgen, admap, inspected,
     µb = µBlock,
+    listEntries,
+    profiler = 0,
     production = 0,
     lastActivity = 0,
     maxAttemptsPerAd = 3,
     visitTimeout = 20000,
     pollQueueInterval = 5000,
+    strictBlockingDisabled = 0,
     repeatVisitInterval = 3600000 * 24; // 24 hours
 
   // mark ad visits as failure if any of these are included in title
@@ -29,6 +32,9 @@
 
     // modify XMLHttpRequest to store original request/ad
     var ads, XMLHttpRequest_open = XMLHttpRequest.prototype.open;
+
+    profiler = +new Date();
+    µBlock.staticFilteringReverseLookup.initWorker(function(){});
 
     XMLHttpRequest.prototype.open = function (method, url) {
 
@@ -1022,6 +1028,63 @@
     postRegister(ad, pageUrl, tabId);
   };
 
+  var listsLoaded = function () {
+
+      console.log("Loaded lists: "+(+new Date()-profiler)+"ms");
+
+      µBlock.staticFilteringReverseLookup.initWorker(function(entries) {
+
+         listEntries = entries;
+         console.log("Compiled Lists: "+(+new Date()-profiler)+"ms");
+        //  µBlock.getAvailableLists(function(r) {
+        //      console.log("getAvailableLists DONE: "+(+new Date()-profiler)+"ms",r);
+        //  });
+         strictBlockingDisabled = true;
+      });
+  };
+
+  var reSpecialChars = /[\*\^\t\v\n]/;
+
+  var fromNetFilterSync = function(compiledFilter, rawFilter) {
+
+      //console.log('adn.fromNetFilterSync', compiledFilter, rawFilter);
+
+      var lists = [];
+      var entry, content, pos, c;
+      for ( var path in listEntries ) {
+          entry = listEntries[path];
+          if ( entry === undefined ) {
+              continue;
+          }
+          content = entry.content;
+          pos = content.indexOf(compiledFilter);
+          if ( pos === -1 ) {
+              continue;
+          }
+          // We need an exact match.
+          // https://github.com/gorhill/uBlock/issues/1392
+          if ( pos !== 0 && reSpecialChars.test(content.charAt(pos - 1)) === false ) {
+              continue;
+          }
+          // https://github.com/gorhill/uBlock/issues/835
+          c = content.charAt(pos + compiledFilter.length);
+          if ( c !== '' && reSpecialChars.test(c) === false ) {
+              continue;
+          }
+          lists.push({
+              title: entry.title,
+              supportURL: entry.supportURL
+          });
+      }
+
+      return lists;
+  };
+
+  var strictBlocking = function () {
+
+      return !strictBlockingDisabled;
+  };
+
   //vAPI.storage.clear();
   vAPI.storage.get(µb.adnSettings, initialize);
 
@@ -1030,6 +1093,7 @@
   return { // public API for
 
     adlist: adlist,
+
     logAdSet: logAdSet,
     clearAds: clearAds,
     exportAds: exportAds,
@@ -1038,10 +1102,13 @@
     adsForPage: adsForPage,
     adsForVault: adsForVault,
     deleteAdSet: deleteAdSet,
+    listsLoaded: listsLoaded,
     updateBadges: updateBadges,
     toggleEnabled: toggleEnabled,
     itemInspected: itemInspected,
-    getPreferences: getPreferences
+    strictBlocking: strictBlocking,
+    getPreferences: getPreferences,
+    fromNetFilterSync: fromNetFilterSync
   };
 
 })();

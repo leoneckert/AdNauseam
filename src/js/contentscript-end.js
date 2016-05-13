@@ -123,6 +123,7 @@ var uBlockCollapser = (function() {
 
             // https://github.com/chrisaljoudi/uBlock/issues/869
             if ( !request.collapse ) {
+                if (dbugDetect) console.log("Allow(request.collapse=false) ", request);
                 continue;
             }
 

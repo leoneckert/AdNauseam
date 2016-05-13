@@ -79,6 +79,8 @@ var onAllReady = function() {
     vAPI.onLoadAllCompleted();
     µb.contextMenu.update(null);
     µb.firstInstall = false;
+
+    µBlock.adnauseam.listsLoaded();
 };
 
 /******************************************************************************/
@@ -122,6 +124,7 @@ var onVersionReady = function(lastVersion) {
 /******************************************************************************/
 
 var onSelfieReady = function(selfie) {
+
     if ( selfie === null || selfie.magic !== µb.systemSettings.selfieMagic ) {
         return false;
     }

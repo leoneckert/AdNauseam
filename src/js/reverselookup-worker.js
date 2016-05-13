@@ -39,9 +39,11 @@ var reSpecialChars = /[\*\^\t\v\n]/;
 
 /******************************************************************************/
 
+/******************************************************************************/
+
 var fromNetFilter = function(details) {
 
-    console.log('fromNetFilter',details);
+    console.log('&&&listEntries***', listEntries);
 
     var lists = [];
 
@@ -76,7 +78,7 @@ var fromNetFilter = function(details) {
     var response = {};
     response[details.rawFilter] = lists;
 
-console.log('postMessage',details.id,response);
+//console.log('postMessage',details.id,response);
     postMessage({
         id: details.id,
         response: response

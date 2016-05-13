@@ -61,12 +61,17 @@ var stopWorker = function() {
 /******************************************************************************/
 
 var initWorker = function(callback) {
+    //console.log('initWorker:',callback);
     if ( worker === null ) {
+        //console.log("CREATING NEW WORKER");
         worker = new Worker('js/reverselookup-worker.js');
         worker.onmessage = onWorkerMessage;
     }
 
     if ( needLists === false ) {
+        //console.log("BAIL1");
+        //console.log("BAIL0", entries);
+
         callback();
         return;
     }
@@ -78,10 +83,13 @@ var initWorker = function(callback) {
 
     var onListLoaded = function(details) {
         var entry = entries[details.path];
+        entry.content = details.content; // ADN
+        //console.log('onListLoaded:',entry);
 
         // https://github.com/gorhill/uBlock/issues/536
         // Use path string when there is no filter list title.
 
+        //entry.content = details.content;
         worker.postMessage({
             what: 'setList',
             details: {
@@ -93,15 +101,20 @@ var initWorker = function(callback) {
         });
 
         countdown -= 1;
+        //console.log("COUNTDOWN:"+countdown);
         if ( countdown === 0 ) {
-            callback();
+            //console.log("BAIL1", entries);
+            callback(entries); // ADN
         }
     };
 
     var µb = µBlock;
     var path, entry;
 
+    //console.log("µb.remoteBlacklists", µb.remoteBlacklists);
+
     for ( path in µb.remoteBlacklists ) {
+
         if ( µb.remoteBlacklists.hasOwnProperty(path) === false ) {
             continue;
         }
@@ -109,6 +122,7 @@ var initWorker = function(callback) {
         if ( entry.off === true ) {
             continue;
         }
+        //console.log("path", path, entry.content);
         entries[path] = {
             title: path !== µb.userFiltersPath ? entry.title : vAPI.i18n('1pPageName'),
             supportURL: entry.supportURL || ''
@@ -117,6 +131,7 @@ var initWorker = function(callback) {
     }
 
     if ( countdown === 0 ) {
+        //console.log("BAIL2", entries);
         callback();
         return;
     }
@@ -124,13 +139,19 @@ var initWorker = function(callback) {
     for ( path in entries ) {
         µb.getCompiledFilterList(path, onListLoaded);
     }
+
+    //console.log("DONE");
 };
 
 /******************************************************************************/
+// var fromNetFilterSync = function(compiledFilter, rawFilter) {
+//     console.log('reverseLookup.fromNetFilterSync:',worker);
+//     return worker ? worker.listEntries : null;
+// };
 
 var fromNetFilter = function(compiledFilter, rawFilter, callback) {
 
-    console.log('staticFilteringReverseLookup.fromNetFilter',
+    console.log('reverseLookup.fromNetFilter',
         'compiledFilter:',compiledFilter,'rawFilter:',rawFilter);
 
     if ( typeof callback !== 'function' ) {
@@ -217,8 +238,10 @@ var resetLists = function() {
 
 return {
     fromNetFilter: fromNetFilter,
+    //fromNetFilterSync: fromNetFilterSync,
     fromCosmeticFilter: fromCosmeticFilter,
     resetLists: resetLists,
+    initWorker: initWorker,
     shutdown: stopWorker
 };
 
