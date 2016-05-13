@@ -509,8 +509,10 @@ PageStore.prototype.temporarilyAllowLargeMediaElements = function() {
 };
 
 /******************************************************************************/
+var disabledRules = ['||googleadservices.com^$third-party',
+  '||pixanalytics.com^$third-party', '||stats.g.doubleclick.net^'
 
-PageStore.prototype.filterRequest = function(context) {
+];PageStore.prototype.filterRequest = function(context) {
 //console.debug('PageStore.filterRequest: ',context.requestURL)
     var requestType = context.requestType;
 
@@ -576,7 +578,7 @@ console.debug('HIT sessionFirewall("%s")', context.requestURL);
                     if (hits && hits.length) {
 
                         title = hits[0].title;
-                        if (title !== 'EasyPrivacy' || raw === '||googleadservices.com^$third-party') {
+                        if (title !== 'EasyPrivacy' || disabledRules.indexOf(raw) > -1) {
                             result = '';
                             console.log("Reject-block: "+title, raw);//, context);
                         }
