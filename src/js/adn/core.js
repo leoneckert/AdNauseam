@@ -1049,8 +1049,8 @@
 
       //console.log('adn.fromNetFilterSync', compiledFilter, rawFilter);
 
-      var lists = [];
-      var entry, content, pos, c;
+      var lists = [], entry, content, pos, c;
+
       for ( var path in listEntries ) {
           entry = listEntries[path];
           if ( entry === undefined ) {

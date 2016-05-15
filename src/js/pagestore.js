@@ -571,20 +571,23 @@ console.debug('HIT sessionFirewall("%s")', context.requestURL);
                 //var list = µb.staticFilteringReverseLookup.fromNetFilterSync(compiled, raw);
                 if (!µBlock.adnauseam.strictBlocking()) {
 
+                    //var ts = +new Date();
                     var compiled = µb.staticNetFilteringEngine.toResultString(1).slice(3);
                     var raw = µb.staticNetFilteringEngine.filterStringFromCompiled(compiled);
                     var title, hits = µBlock.adnauseam.fromNetFilterSync(compiled, raw);
+                    //var elapsed = +new Date() - ts;
+                    //console.log('elapsed:'+elapsed);
 
                     if (hits && hits.length) {
 
                         title = hits[0].title;
                         if (title !== 'EasyPrivacy' || disabledRules.indexOf(raw) > -1) {
                             result = '';
-                            console.log("Reject-block: "+title, raw);//, context);
+                            //console.log("Reject-block: "+title, raw);//, context);
                         }
                         else console.warn("Allow-block: "+title, raw);
                     }
-                    else console.error("NO hits ****");
+                    else console.error("NO hits ****", raw, compiled);
                 }
                 else console.warn("*** IGNORING[not-ready]");
             }
