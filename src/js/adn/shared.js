@@ -250,10 +250,6 @@ var clearAds = function () {
   }
 };
 
-uDom('#export').on('click', exportToFile);
-uDom('#import').on('click', startImportFilePicker);
-uDom('#importFilePicker').on('change', handleImportFilePicker);
-uDom('#reset').on('click', clearAds);
 
 
 
