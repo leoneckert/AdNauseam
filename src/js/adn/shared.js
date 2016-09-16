@@ -167,7 +167,7 @@ var targetDomain = function (ad) {
   return dom;
 }
 
-/***** Export, Import, Clear Ads (shared between vault and options) *********/
+/***** Export, Import, Clear Ads (shared between vault and options) *****/
 
 var messager = vAPI.messaging;
 

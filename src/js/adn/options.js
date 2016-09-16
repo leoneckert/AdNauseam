@@ -92,10 +92,12 @@
     });
 
 
+    //callback functions that are called in the next 4 lines are located in js/adn/shared.js
     uDom('#export').on('click', exportToFile);
     uDom('#import').on('click', startImportFilePicker);
     uDom('#importFilePicker').on('change', handleImportFilePicker);
     uDom('#reset').on('click', clearAds);
+
 
     uDom('#resetOptions').on('click', resetUserData);
     uDom('#confirm-close').on('click', function (e) {
