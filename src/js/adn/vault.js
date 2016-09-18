@@ -1072,22 +1072,36 @@
     /////////// DRAG-STAGE ///////////
     var offsetX = 0;
     var offsetY = 0;
+    var container_div = document.getElementById('container');
 
-    document.onmousedown = function(e) {
+    container_div.addEventListener('mousedown', mouseDown, false);
+    window.addEventListener('mouseup', mouseUp, false);
+
+    function mouseUp()
+    {
+        window.removeEventListener('mousemove', divMove, true);
+    }
+
+    function mouseDown(e){
+      // mouseJustDown = true;
+      window.addEventListener('mousemove', divMove, true);
       offsetX = e.pageX;
       offsetY = e.pageY;
-    };
+    }
+    
+    var divMove = function(e){
+        var x_change = e.pageX - offsetX;
+        var y_change = e.pageY - offsetY;
 
-    document.onmouseup   = function(e) {
-      var style = window.getComputedStyle(document.querySelector('#container'), null),
-             dm = document.querySelector('#container');
+        var ml = parseInt(container_div.style.getPropertyValue("margin-left"));
+        var mt = parseInt(container_div.style.getPropertyValue("margin-top"));
 
-      var x = parseInt(style.getPropertyValue('margin-left'));
-      var y = parseInt(style.getPropertyValue('margin-top'));
+        container_div.style.marginLeft = (ml+=x_change) + 'px';
+        container_div.style.marginTop = (mt+=y_change) + 'px';
 
-      dm.style.marginLeft = (x + e.pageX - offsetX) + 'px';
-      dm.style.marginTop = (y + e.pageY - offsetY) + 'px';
-    };
+        offsetX = e.pageX;
+        offsetY = e.pageY;      
+    }
 
     /////////// ZOOM-STAGE ///////////
 
