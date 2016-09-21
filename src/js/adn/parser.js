@@ -19,6 +19,7 @@
     Home: https://github.com/dhowe/AdNauseam
 */
 
+
 (function () {
 
   'use strict';
@@ -32,6 +33,8 @@
       // console.debug('parser.js > already injected');
       return;
   }
+
+
 
   vAPI.adParser = (function () {
 
@@ -76,15 +79,14 @@
       return num;
     }
 
-    var clickableParent = function (node) {
+     var clickableParent = function (node) {
 
       var checkNode = node;
 
-      while (checkNode) {
+      while (checkNode && checkNode.nodeType ===1) {
 
         //checkNode && console.log('CHECKING: '+checkNode.tagName, checkNode);
-
-        if (checkNode.tagName === 'A') {
+        if (checkNode.tagName === 'A' || checkNode.hasAttribute('onclick')) {
           return checkNode;
         }
 
@@ -155,9 +157,16 @@
       target = clickableParent(img);
       if (target) {
 
-        if (target.tagName === 'A') { // if not, need to check for div.onclick?
+        if (target.tagName === 'A' || target.hasAttribute('onclick')) { // if not, need to check for div.onclick?
+          
+          //onclick possibilities
+          if(target.hasAttribute('onclick')) {
+            var onclickInfo = target.getAttribute("onclick");
+            var hostname = window.location.hostname;
+            targetUrl = parseOnClick(onclickInfo, hostname);
+          }
+          else targetUrl = target.getAttribute("href");
 
-          targetUrl = target.getAttribute("href");
           if (targetUrl) {
 
             ad = createAd(document.domain, targetUrl, {
@@ -315,10 +324,11 @@
         return false; // for now
     }
 
+
+
     /**********************************************************************/
 
     return {
-
       process: process,
       createAd: createAd,
       notifyAddon: notifyAddon,
@@ -328,3 +338,24 @@
   })();
 
 })();
+
+  // parse the target link from a js onclick handler
+  var  parseOnClick = function(str, hostname) {
+
+      var result,
+          matches = /(?:javascript)?window.open\(([^,]+)[,)]/gi.exec(str);
+
+      if (matches && matches.length > 0) {
+        result = matches[1].replace(/['"]+/g, "");
+      }
+      
+      // handle relative urls
+      if (result && result.startsWith('//')) {
+         result = "http:" + result;
+      }
+      if(result && (!result.startsWith('http'))){ 
+        result = "http://" + hostname + "/" + result; 
+      }
+
+      return result;
+  }
