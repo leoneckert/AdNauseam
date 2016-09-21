@@ -44,7 +44,8 @@
     animateMs = 2000,
     viewState = {},
     userZoomScale = Zooms[Zooms.indexOf(100)], // determined by mousewheel
-    zoomIdx = 0; // determined by zoom in / out buttons
+    zoomIdx = 0, // determined by zoom in / out buttons
+    draggingVault = false;
 
   var gAds, gAdSets, gMin, gMax; // stateful
 
@@ -596,9 +597,13 @@
   function enableLightbox() {
 
     $('.item').click(function (e) {
-
-      e.stopPropagation();
-      lightboxMode($(this));
+      console.log('draggingVault', draggingVault);
+      if(!draggingVault){
+        e.stopPropagation();
+        lightboxMode($(this));
+      }else{
+        draggingVault = false;
+      }
     });
 
     if (EnableContextMenu) {
@@ -818,7 +823,7 @@
   function lightboxMode($selected) {
 
     if ($selected && !$selected.hasClass('inspected')) {
-
+      console.log("assigning inspected class");
       var inspectedGid = parseInt($selected.attr('data-gid'));
 
       selectedAdSet = findAdSetByGid(inspectedGid); // throws
@@ -1073,6 +1078,7 @@
     var offsetX = 0;
     var offsetY = 0;
     var container_div = document.getElementById('container');
+    // var draggingVault = false;
 
     container_div.addEventListener('mousedown', mouseDown, false);
     window.addEventListener('mouseup', mouseUp, false);
@@ -1082,6 +1088,7 @@
         window.removeEventListener('mousemove', divMove, true);
     }
 
+
     function mouseDown(e){
       // mouseJustDown = true;
       window.addEventListener('mousemove', divMove, true);
@@ -1090,6 +1097,8 @@
     }
     
     var divMove = function(e){
+        draggingVault = true;
+        
         var x_change = e.pageX - offsetX;
         var y_change = e.pageY - offsetY;
 
