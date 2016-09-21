@@ -597,7 +597,6 @@
   function enableLightbox() {
 
     $('.item').click(function (e) {
-      console.log('draggingVault', draggingVault);
       if(!draggingVault){
         e.stopPropagation();
         lightboxMode($(this));
@@ -823,7 +822,6 @@
   function lightboxMode($selected) {
 
     if ($selected && !$selected.hasClass('inspected')) {
-      console.log("assigning inspected class");
       var inspectedGid = parseInt($selected.attr('data-gid'));
 
       selectedAdSet = findAdSetByGid(inspectedGid); // throws
@@ -1078,7 +1076,6 @@
     var offsetX = 0;
     var offsetY = 0;
     var container_div = document.getElementById('container');
-    // var draggingVault = false;
 
     container_div.addEventListener('mousedown', mouseDown, false);
     window.addEventListener('mouseup', mouseUp, false);
