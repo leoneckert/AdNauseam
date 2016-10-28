@@ -336,7 +336,7 @@
 
     uDom(document.createElement('span'))
       .addClass('title')
-      .text(ad.title ? ad.title : "#" + ad.id)
+      .html(ad.title ? ad.title : "#" + ad.id)
       .appendTo($a);
 
     uDom(document.createElement('cite'))
