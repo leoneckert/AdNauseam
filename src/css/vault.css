@@ -231,8 +231,8 @@ div.tooltip {
 }
 
 .session-sum {
-	/*position: absolute;
-	bottom: 82px;
+	position: relative;
+	/*bottom: 82px;
 	left: 24px;*/
 	display: inline-block;
 	z-index: 100;
@@ -260,7 +260,7 @@ div.tooltip {
 }
 
 #actions {
-	/*position: absolute;*/
+	position: relative;
 	z-index: 100;
 	float:right;
 	height:17px;
