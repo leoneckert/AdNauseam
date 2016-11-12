@@ -111,13 +111,19 @@ var renderFilterLists = function() {
         elem.attr('id', listKey);
 
         var elem = li.descendants('label');
-        elem.text(listNameFromListKey(listKey) + '\u200E');
+        // elem.text(listNameFromListKey(listKey) + '\u200E');
         elem.attr('for', listKey);
+        // elem.attr('href', 'asset-viewer.html?url=' + encodeURI(listKey));
 
         var elem = li.descendants('a:nth-of-type(1)');
+        elem.text(listNameFromListKey(listKey) + '\u200E');
+        // elem.attr('for', listKey);
         elem.attr('href', 'asset-viewer.html?url=' + encodeURI(listKey));
-        elem.attr('type', 'text/html');
-        elem.attr('data-listkey', listKey);
+
+        // var elem = li.descendants('a:nth-of-type(1)');
+        // elem.attr('href', 'asset-viewer.html?url=' + encodeURI(listKey));
+        // elem.attr('type', 'text/html');
+        // elem.attr('data-listkey', listKey);
 
         if ( entry.instructionURL ) {
             elem = li.descendants('a:nth-of-type(2)');
