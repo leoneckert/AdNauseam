@@ -653,11 +653,12 @@
   function computeZoom(items) { // autozoom
 
     setZoom(zoomIdx = Zooms.indexOf(100), true);
-
     var i = 0,
       percentVis = 0.6,
       winW = $(window).width(),
+    //   winH = $('#svgcon').offset().top - $("#notifications").height();
       winH = $('#svgcon').offset().top;
+      console.log("winH", winH);
 
     while (i < items.length) {
 
@@ -688,7 +689,10 @@
 
     var off = $ele.offset(), // relative to container
       cx = $(window).width() / 2,
-      cy = $(window).height() / 2,
+    //   cy = ($(window).height() - $("#notifications").height()) / 2,
+      cy = ($(window).height() - $("#notifications").height()) / 2,
+    // cy = 100,
+
       iw = $ele.attr('data-width') || 80,
       ih = $ele.attr('data-height') || 40;
 
@@ -1303,18 +1307,22 @@
     var loader = imagesLoaded($container, function () {
 
       if (visible > 1) {
-
+          console.log($items);
+          console.log($("#notifications").height());
+          var notificationHeight = $("#notifications").height();
         var p = new Packery('#container', {
           centered: {
+            // y: 5000 - notificationHeight/2
             y: 5000
           }, // centered at half min-height
           itemSelector: '.item',
           gutter: 1
         });
+        console.log(p);
 
         computeZoom($items);
       } else if (visible == 1) {
-
+          console.log("single", $items);
         $items.css({ // center single
 
           top: (5000 - $items.height() / 2) + 'px',
@@ -1493,6 +1501,7 @@
           marginTop: '-5000px'
         })
         .removeClass('notransition');
+        console.log("centering container");
     }
 
     function filterAdSets(ads) {
