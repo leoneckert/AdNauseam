@@ -103,8 +103,10 @@
             what: 'verifyAdBlockers'
         },function() {
         if (json.notifications && json.notifications.length)
-            renderNotifications(json.notifications); adjustHeight();
+            renderNotifications(json.notifications);
+            adjustHeight();
     });
+
 
   };
 
@@ -654,11 +656,10 @@
 
     setZoom(zoomIdx = Zooms.indexOf(100), true);
     var i = 0,
-      percentVis = 0.6,
+      percentVis = 0.6, //when all notifications are active, the ads appear really small. setting this value to something closer to 0, scales them up slightely. We could do that.
       winW = $(window).width(),
-    //   winH = $('#svgcon').offset().top - $("#notifications").height();
       winH = $('#svgcon').offset().top;
-      console.log("winH", winH);
+      winH = $('#svgcon').offset().top - $("#notifications").height();
 
     while (i < items.length) {
 
@@ -683,15 +684,16 @@
   }
 
   function itemPosition($ele) {
-
     // first set zoom back to 100%
     setZoom(Zooms.indexOf(100), true);
 
     var off = $ele.offset(), // relative to container
       cx = $(window).width() / 2,
+      cy = $(window).height() / 2,
+
     //   cy = ($(window).height() - $("#notifications").height()) / 2,
-      cy = ($(window).height() - $("#notifications").height()) / 2,
-    // cy = 100,
+    //   cy = ($(window).height() - $("#notifications").height()) / 2,
+        // cy = 0, //doesnt seem to have impact
 
       iw = $ele.attr('data-width') || 80,
       ih = $ele.attr('data-height') || 40;
@@ -1318,7 +1320,6 @@
           itemSelector: '.item',
           gutter: 1
         });
-        console.log(p);
 
         computeZoom($items);
       } else if (visible == 1) {
@@ -1495,10 +1496,12 @@
 
     function centerContainer() {
 
+
       $('#container').addClass('notransition')
         .css({
           marginLeft: '-5000px',
-          marginTop: '-5000px'
+        //   marginTop: '-5000px'
+          marginTop: -5000 - $("#notifications").height()/2 + 'px'
         })
         .removeClass('notransition');
         console.log("centering container");
