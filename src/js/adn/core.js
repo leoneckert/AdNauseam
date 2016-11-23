@@ -1582,22 +1582,134 @@
       'filename': filename
     });
 
-    if (request.includeImages) saveVaultImages();
+    if (true) saveVaultImages(filename);
 
     log('[EXPORT] ' + count + ' ads to ' + filename);
   };
 
-  var saveVaultImages = function () {
+
+    function getBase64(url, callback) {
+        console.log("in b64");
+        var image = new Image();
+        image.onload = function () {
+            var canvas = document.createElement('canvas');
+            canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+            canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+            canvas.getContext('2d').drawImage(this, 0, 0);
+            console.log("got b64");
+            var rawData = canvas.toDataURL('image/png').replace(/^data:image\/(png|jpg);base64,/, '');
+            // console.log(rawData);
+            // return rawData;
+            callback(rawData);
+        };
+        image.src = url;
+        // callback(zip);
+        // console.log(b64);
+        //
+        // // zip.folder("images");
+        // zip.file("bla/smile.gif", b64, {base64: true});
+    }
+    //
+    //
+    // function getBase64(url, callback){
+    //     var xmlHTTP = new XMLHttpRequest();
+    //     xmlHTTP.open('GET', url, true);
+    //     xmlHTTP.responseType = 'arraybuffer';
+    //     xmlHTTP.onload = function(e) {
+    //       var arr = new Uint8Array(this.response);
+    //       var raw = String.fromCharCode.apply(null,arr);
+    //       var b64 = btoa(raw);
+    //       console.log("got b64");
+    //       callback(b64);
+    //     };
+    //     xmlHTTP.send();
+    // }
+
+
+function loadFolder(zip, images, callback){
+
+    var img = zip.folder("images");
+
+    var numImgs = images.length;
+    var b64sBools = [];
+    var b64s = [];
+    for(var i = 0; i < numImgs; i++){
+        b64sBools.push(false);
+    }
+    var idx = 0
+
+
+    while(b64s.length < numImgs - 1){
+        console.log("inwhile", numImgs, b64s.length);
+        if(b64sBools[idx] == false){
+            b64sBools[idx] = true;
+            console.log("called idx", i);
+
+            getBase64(images[idx], function(b64){
+                b64s.push(b64);
+            });
+
+        }
+        idx++;
+    }
+    //
+    for(var i = 0; i < b64s.length; i++){
+        console.log("working on image", i);
+        // getBase64(images[i], function(b64){
+        img.file("smile"+i+".gif", b64s[i], {base64: true});
+        // });
+    }
+
+
+
+    callback(zip);
+
+    // img.file("smile.gif", getBase64(images[0]), {base64: true});
+    //
+    // zip.generateAsync({type:"blob"})
+    //     .then(function(content) {
+    //     // see FileSaver.js
+    //         saveAs(content, "example.zip");
+    //     });
+
+}
+
+
+  var saveVaultImages = function (filename) {
 
     var images = []; // extract image urls
 
     adlist().forEach(function (ad) {
       if (ad.contentType === 'img')
         images.push(ad.contentData.src);
+
     });
 
     // download them to a folder next to the export file (with same name -json)
     // handle #639 here
+
+    var zipNameParts = filename.split(".");
+    var zipName = zipNameParts.splice(0, zipNameParts.length - 2).join('.');
+    console.log(images);
+    console.log(zipName);
+
+
+
+
+    var zip = new JSZip();
+
+    // var img = zip.folder("images");
+
+    loadFolder(zip, images, function(fullZip){
+        console.log("got fullZIP");
+        fullZip.generateAsync({type:"blob"})
+            .then(function(content) {
+            // see FileSaver.js
+                saveAs(content, "example.zip");
+            });
+
+    });
+
   };
 
   exports.adsForPage = function (request, pageStore, tabId) {
