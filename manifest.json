@@ -49,11 +49,11 @@
     "webRequestBlocking",
     "management",
     "http://*/*",
-    "https://*/*"
+    "https://*/*",
+    "downloads"
   ],
   "short_name": "AdNauseam",
   "storage": {
     "managed_schema": "managed_storage.json"
   }
 }
-
