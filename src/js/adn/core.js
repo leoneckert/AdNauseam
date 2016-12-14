@@ -1639,20 +1639,26 @@
             // for now:
             filename = "image_"+i+".jpg"
 			var img = new Image();
-			img.onload = function() {
-
+            img.onload = function() {
 				var a = document.createElement('a');
 				a.href = this.src;
 
 				// Add to file array [{name, data}]
 				files.push({name: filename, data: getBase64Image(img) });
-			}
+            }
+            img.onerror = function() {
+                var index = imgURLs.indexOf(url);
+                if (index > -1) {
+                    imgURLs.splice(index, 1);
+                }
+            }
 			img.src = url;
 		})(url);
 
 	}
 
 	var check = setInterval(function(){
+        console.log("checking");
 		if(files.length==imgURLs.length) {
 			clearInterval(check);
 
